@@ -56,6 +56,8 @@ Edita `app/db/connection.py` con tus credenciales de base de datos.
 uvicorn app.main:app --reload
 ```
 
+### 6. Probar Endpoints
+
 Se puede aprovechar el /docs de FastAPI para probar los endpoins: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
 
 ![Logo del Proyecto](assets/endpoints.png)
