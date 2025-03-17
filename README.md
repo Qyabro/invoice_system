@@ -32,7 +32,7 @@ backend/
 
 ### 1. Clonar el repositorio
 ```bash
-git clone https://github.com/tuusuario/billing_system.git
+git clone https://github.com/Qyabro/invoice_system
 cd backend
 ```
 
