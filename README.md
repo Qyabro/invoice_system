@@ -1,6 +1,6 @@
 # Invoice System
 
-Sistema de cálculo y análisis de facturación de energía utilizando **Python**, **Python** y **PostgreSQL**, capaz de manejar cálculos complejos, grandes volúmenes de datos y optimizaciones avanzadas.
+Sistema de cálculo y análisis de facturación de energía utilizando **Python**, **FastAPI** y **PostgreSQL**, capaz de manejar cálculos complejos, grandes volúmenes de datos y optimizaciones avanzadas.
 
 ## Características
 - API RESTful con FastAPI.
@@ -154,18 +154,205 @@ Edita `app/db/connection.py` con tus credenciales de base de datos.
 uvicorn app.main:app --reload
 ```
 
-### 6. Probar Endpoints
-
-Se puede aprovechar el /docs de FastAPI para probar los endpoins: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
-
-![Prueba API](assets/endpoints.png)
-
 ## Endpoints
 
 | Método | Ruta                |          Descripción               |
 |---------|--------------------|------------------------------------|
-| POST    | /calculate-invoice | Calcula factura                    |
+| POST    | /calculate-invoice | Calcula factura por cliente                   |
 | GET     | /client-statistics | Estadisticas del cliente           |
 | GET     | /system-load       | Carga del sistema por hora         |
 | POST    | /concept           | Calculo independiente de conceptos |
 
+### Probar endpoints desde FastAPI /docs
+
+Se puede aprovechar el **/docs** de FastAPI que se genera al ejecutar el proyecto, para probar los endpoins: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
+
+![Prueba API](assets/endpoints.png)
+
+### POST /calculate-invoice
+
+#### Example:
+```bash
+http://127.0.0.1:8000/calculate-invoice/
+```
+Request Body:
+```json
+{
+  "client_id": 3222,
+  "year": 2023,
+  "month": 9
+}
+```
+Response body:
+```json
+[
+  {
+    "id_service": 3222,
+    "id_market": 4,
+    "cdi": 101,
+    "voltage_level": 2,
+    "total_consumption": 29768.384765625,
+    "total_injection": 344.8620300292969,
+    "cu": 584.1699829101562,
+    "c": 23.579999923706055,
+    "ea": 17389796,
+    "ec": 8131.8466796875,
+    "ee1": -201458.046875,
+    "ee2": 0
+  }
+]
+```
+
+### GET /client-statistics
+```bash
+http://127.0.0.1:8000/client-statistics?client_id=3222&year=2023&month=9
+```
+Response body:
+```json
+[
+  {
+    "id_service": 3222,
+    "total_consumption": 29768.384765625,
+    "total_injection": 344.8620300292969,
+    "avg_hourly_consumption": 41.34497884114583,
+    "avg_hourly_injection": 0.4789750417073568,
+    "net_balance": -29423.5234375
+  }
+]
+```
+### GET /system-load
+
+```bash
+http://127.0.0.1:8000/system-load?year=2023&month=9&day=14
+```
+Response body:
+```json
+[
+  {
+    "date": "2023-09-14T00:00:00",
+    "total_load_kwh": 53.4890022277832
+  },
+  {
+    "date": "2023-09-14T01:00:00",
+    "total_load_kwh": 57.290000915527344
+  },
+  {
+    "date": "2023-09-14T02:00:00",
+    "total_load_kwh": 47.39899826049805
+  },
+  ...
+  ...
+  ...
+]
+```
+
+### POST /concept
+
+```bash
+http://127.0.0.1:8000/concept/
+```
+
+#### - EA
+Para el calculo de **EA**, se debe enviar la opcion **1**.
+
+Request Body:
+```json
+{
+  "client_id": 3222,
+  "year": 2023,
+  "month": 9,
+  "option": 1
+}
+```
+
+Response body:
+```json
+[
+  {
+    "id_service": 3222,
+    "id_market": 4,
+    "cdi": 101,
+    "voltage_level": 2,
+    "total_consumption": 29768.384765625,
+    "cu": 584.1699829101562,
+    "ea": 17389796
+  }
+]
+```
+
+#### - EC
+Para el calculo de **EC**, se debe enviar la opcion **2**.
+
+Request Body:
+```json
+{
+  "client_id": 3222,
+  "year": 2023,
+  "month": 9,
+  "option": 2
+}
+```
+
+Response body:
+```json
+[
+  {
+    "id_service": 3222,
+    "id_market": 4,
+    "cdi": 101,
+    "voltage_level": 2,
+    "total_injection": 344.8620300292969,
+    "c": 23.579999923706055,
+    "ec": 8131.8466796875
+  }
+]
+```
+
+#### - EE1
+Para el calculo de **EE1**, se debe enviar la opcion **3**.
+
+Request Body:
+```json
+{
+  "client_id": 3222,
+  "year": 2023,
+  "month": 9,
+  "option": 3
+}
+```
+
+Response body:
+```json
+[
+  {
+    "id_service": 3222,
+    "total_injection": 344.8620300292969,
+    "total_consumption": 29768.384765625,
+    "cu": 584.1699829101562,
+    "ee1": -201458.046875
+  }
+]
+```
+
+#### - EE2
+Para el calculo de **EE2**, se debe enviar la opcion **4**.
+
+Request Body:
+```json
+{
+  "client_id": 3222,
+  "year": 2023,
+  "month": 9,
+  "option": 4
+}
+```
+
+Response body:
+```json
+[
+  {
+    "id_service": 3222,
+    "ee2": 0
+  }
+]
+```
