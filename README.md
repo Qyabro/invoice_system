@@ -60,7 +60,7 @@ Se puede aprovechar el /docs de FastAPI para probar los endpoins: [http://127.0.
 
 ![Logo del Proyecto](assets/endpoints.png)
 
-## Endpoints Principales
+## Endpoints
 
 | Método | Ruta                |          Descripción               |
 |---------|--------------------|------------------------------------|
