@@ -25,20 +25,20 @@ ee_calculated AS (
     FROM data
 ),
 total_ee AS (
-    SELECT SUM(ee2) AS total_ee2 FROM ee_calculated
+    SELECT ROUND( SUM(ee2)::NUMERIC,2) AS total_ee2 FROM ee_calculated
 )
 SELECT records.id_service,        
        services.id_market, services.cdi, services.voltage_level,       
        SUM(consumption.value) AS total_consumption,
        SUM(injection.value) AS total_injection,
        tariffs.cu, tariffs.c,
-       SUM(consumption.value) * tariffs.CU AS ea,
-       SUM(injection.value) * tariffs.C AS ec,	   
+       ROUND((SUM(consumption.value) * tariffs.CU) ::NUMERIC,2) AS ea,
+       ROUND((SUM(injection.value) * tariffs.C) ::NUMERIC,2) AS ec,	   
        CASE 
            WHEN SUM(injection.value) <= SUM(consumption.value) THEN 
-                SUM(injection.value) * tariffs.CU * (-1)
+                ROUND(  (SUM(injection.value) * tariffs.CU * (-1))::NUMERIC,2)
            ELSE 
-                SUM(consumption.value) * tariffs.CU * (-1)
+                ROUND(  (SUM(consumption.value) * tariffs.CU * (-1) )::NUMERIC,2)
        END AS ee1,
        (SELECT total_ee2 FROM total_ee) AS ee2 -- Se agrega el total de ee2 aquí
 FROM records
@@ -54,7 +54,7 @@ JOIN tariffs
         -- Si voltage_level ES 2 o 3, ignorar cdi
         OR tariffs.voltage_level IN (2,3)
     )
-WHERE records.id_service = $1 
+WHERE records.id_service = $1  
   AND records.record_timestamp >= $2
   AND records.record_timestamp < $3
 GROUP BY records.id_service, services.id_market, services.cdi, services.voltage_level,
