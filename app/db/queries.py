@@ -1,39 +1,46 @@
 GET_INVOICE_QUERY = """
 WITH data AS (
     SELECT records.record_timestamp, 
-        injection.value AS hourly_injection,
-        SUM(injection.value) OVER (ORDER BY records.record_timestamp) AS cumulative_injection,
-        SUM(consumption.value) OVER () AS total_consumption,
-        xm_data_hourly_per_agent.value AS invoice_factor
+           injection.value AS hourly_injection,
+           SUM(injection.value) OVER (ORDER BY records.record_timestamp) AS cumulative_injection,
+           SUM(consumption.value) OVER () AS total_consumption,
+           xm_data_hourly_per_agent.value AS invoice_factor
     FROM records
     JOIN injection ON records.id_record = injection.id_record
     JOIN consumption ON records.id_record = consumption.id_record
-    JOIN xm_data_hourly_per_agent ON records.record_timestamp = xm_data_hourly_per_agent.record_timestamp
-    WHERE records.id_service = $1
-    AND records.record_timestamp >= $2
-    AND records.record_timestamp < $3
+    JOIN xm_data_hourly_per_agent ON records.record_timestamp = xm_data_hourly_per_agent.record_timestamp    
+    WHERE records.id_service = $1  
+      AND records.record_timestamp >= $2
+      AND records.record_timestamp < $3
+),
+ee_calculated AS (
+    SELECT CASE 
+               WHEN cumulative_injection <= total_consumption THEN 0
+               WHEN cumulative_injection > total_consumption AND 
+                    MIN(cumulative_injection) FILTER (WHERE cumulative_injection > total_consumption) 
+                    OVER () = cumulative_injection 
+               THEN (cumulative_injection - total_consumption) * invoice_factor
+               ELSE hourly_injection * invoice_factor
+           END AS ee2
+    FROM data
 ),
 total_ee AS (
-    SELECT SUM(CASE 
-                WHEN cumulative_injection <= total_consumption THEN 0
-                WHEN cumulative_injection > total_consumption THEN (cumulative_injection - total_consumption) * invoice_factor
-                ELSE hourly_injection * invoice_factor
-            END) AS total_ee2
-    FROM data
+    SELECT SUM(ee2) AS total_ee2 FROM ee_calculated
 )
-SELECT 
-    records.id_service,        
-    services.id_market, services.cdi, services.voltage_level,       
-    SUM(consumption.value) AS total_consumption,
-    SUM(injection.value) AS total_injection,
-    tariffs.cu, tariffs.c,
-    SUM(consumption.value) * tariffs.CU AS ea,
-    SUM(injection.value) * tariffs.C AS ec,	    
-    CASE 
-        WHEN SUM(injection.value) <= SUM(consumption.value) THEN SUM(injection.value) * tariffs.CU * (-1)
-        ELSE SUM(consumption.value) * tariffs.CU * (-1)
-    END AS ee1,
-    (SELECT total_ee2 FROM total_ee) AS ee2
+SELECT records.id_service,        
+       services.id_market, services.cdi, services.voltage_level,       
+       SUM(consumption.value) AS total_consumption,
+       SUM(injection.value) AS total_injection,
+       tariffs.cu, tariffs.c,
+       SUM(consumption.value) * tariffs.CU AS ea,
+       SUM(injection.value) * tariffs.C AS ec,	   
+       CASE 
+           WHEN SUM(injection.value) <= SUM(consumption.value) THEN 
+                SUM(injection.value) * tariffs.CU * (-1)
+           ELSE 
+                SUM(consumption.value) * tariffs.CU * (-1)
+       END AS ee1,
+       (SELECT total_ee2 FROM total_ee) AS ee2 -- Se agrega el total de ee2 aquí
 FROM records
 JOIN consumption ON records.id_record = consumption.id_record
 JOIN injection ON records.id_record = injection.id_record
@@ -41,10 +48,17 @@ JOIN services ON records.id_service = services.id_service
 JOIN tariffs 
     ON tariffs.id_market = services.id_market 
     AND tariffs.voltage_level = services.voltage_level
-WHERE records.id_service = $1
-AND records.record_timestamp >= $2
-AND records.record_timestamp < $3
-GROUP BY records.id_service, services.id_market, services.cdi, services.voltage_level, tariffs.cu, tariffs.c
+    AND (
+        -- Si voltage_level NO es 2 ni 3, comparar cdi
+        (tariffs.voltage_level NOT IN (2,3) AND tariffs.cdi = services.cdi)
+        -- Si voltage_level ES 2 o 3, ignorar cdi
+        OR tariffs.voltage_level IN (2,3)
+    )
+WHERE records.id_service = $1 
+  AND records.record_timestamp >= $2
+  AND records.record_timestamp < $3
+GROUP BY records.id_service, services.id_market, services.cdi, services.voltage_level,
+         tariffs.cu, tariffs.c;
 """
 
 GET_STATISTICS_QUERY = """
