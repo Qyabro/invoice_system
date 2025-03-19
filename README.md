@@ -4,7 +4,17 @@ Sistema de cálculo y análisis de facturación de energía utilizando **Python*
 
 ## Resultados para registros de  la prueba
 
-### Servicio 3222
+### Resultados en analisis previo (Excel)
+
+|id_service|Consumo|Inyeccion|CU|C|EA|EC|EE1|EE2|
+|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+|3222|29768,62|344,86|584,17|23,58|17389934,75|8131,7988|-201456,8662|0|
+|2478|562,97|727,88|711,62|23,94|400620,7114|17425,4472|-400620,7114|-705515,4947|
+|2256|381,77|594,97|770,73|23,94|294241,5921|14243,5818|-294241,5921|-600452,2137|
+
+### Resultados API
+
+#### Servicio 3222:
 ```json
 [
   {
@@ -24,7 +34,7 @@ Sistema de cálculo y análisis de facturación de energía utilizando **Python*
 ]
 ```
 
-### Servicio 2478
+#### Servicio 2478:
 ```json
 [
   {
@@ -44,7 +54,7 @@ Sistema de cálculo y análisis de facturación de energía utilizando **Python*
 ]
 ```
 
-### Servicio 2256
+#### Servicio 2256:
 ```json
 [
   {
@@ -250,7 +260,7 @@ uvicorn app.main:app --reload
 
 | Método | Ruta                |          Descripción               |
 |---------|--------------------|------------------------------------|
-| POST    | /calculate-invoice | Calcula factura por cliente                   |
+| POST    | /calculate-invoice | Calcula factura por cliente        |
 | GET     | /client-statistics | Estadisticas del cliente           |
 | GET     | /system-load       | Carga del sistema por hora         |
 | POST    | /concept           | Calculo independiente de conceptos |
