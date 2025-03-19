@@ -68,17 +68,14 @@ Sistema de cálculo y análisis de facturación de energía utilizando **Python*
 
 ### EE1:
 
-$$
 
-EE1=min(∑Inyeccion,∑Consumo)
+EE1 = min(∑Inyeccion, ∑Consumo)
 
-$$
 
-$$
 
 ValorEE1 = EE1 × CUnegativo​
 
-$$
+
 
 
 Procedimiento para el Cálculo de EE1:
