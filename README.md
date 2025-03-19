@@ -2,6 +2,69 @@
 
 Sistema de cálculo y análisis de facturación de energía utilizando **Python**, **FastAPI** y **PostgreSQL**, capaz de manejar cálculos complejos, grandes volúmenes de datos y optimizaciones avanzadas.
 
+## Resultados para registros de  la prueba
+
+### Servicio 3222
+```json
+[
+  {
+    "id_service": 3222,
+    "id_market": 4,
+    "cdi": 101,
+    "voltage_level": 2,
+    "total_consumption": 29768.62,
+    "total_injection": 344.86,
+    "cu": 584.17,
+    "c": 23.58,
+    "ea": 17389934.75,
+    "ec": 8131.8,
+    "ee1": -201456.87,
+    "ee2": 0
+  }
+]
+```
+
+### Servicio 2478
+```json
+[
+  {
+    "id_service": 2478,
+    "id_market": 1,
+    "cdi": 0,
+    "voltage_level": 1,
+    "total_consumption": 562.97,
+    "total_injection": 727.88,
+    "cu": 711.62,
+    "c": 23.94,
+    "ea": 400620.71,
+    "ec": 17425.45,
+    "ee1": -400620.71,
+    "ee2": 174350.73
+  }
+]
+```
+
+### Servicio 2256
+```json
+[
+  {
+    "id_service": 2256,
+    "id_market": 1,
+    "cdi": 100,
+    "voltage_level": 1,
+    "total_consumption": 381.77,
+    "total_injection": 594.97,
+    "cu": 770.73,
+    "c": 23.94,
+    "ea": 294241.59,
+    "ec": 14243.58,
+    "ee1": -294241.59,
+    "ee2": 225869.29
+  }
+]
+```
+
+
 ## Características
 - API RESTful con FastAPI.
 - Base de datos PostgreSQL.
