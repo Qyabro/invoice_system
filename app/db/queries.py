@@ -110,44 +110,57 @@ GROUP BY records.id_service, tariffs.CU, services.id_market,services.cdi, servic
 
 GET_EC_QUERY = """
 SELECT records.id_service, 
-        services.id_market, services.cdi, services.voltage_level,
-        SUM(injection.value) AS total_injection,
-        tariffs.C,
-        SUM(injection.value) * tariffs.C AS ec
+		tariffs.id_market,
+		tariffs.voltage_level,
+		tariffs.cdi,
+	    SUM(injection.value) AS total_injection,
+	   tariffs.C,
+	   ROUND((SUM(injection.value) * tariffs.C)::NUMERIC,2) AS ec
 FROM records
 JOIN injection ON records.id_record = injection.id_record
 JOIN services ON records.id_service = services.id_service
 JOIN tariffs
-      ON (tariffs.id_market = services.id_market AND tariffs.voltage_level = services.voltage_level)
-      OR (tariffs.id_market = services.id_market AND tariffs.voltage_level NOT IN (2,3) AND tariffs.cdi = services.cdi)
+	ON 	tariffs.id_market = services.id_market AND 
+		tariffs.voltage_level = services.voltage_level AND
+		(        
+        	(tariffs.voltage_level NOT IN (2,3) AND tariffs.cdi = services.cdi) -- Si voltage_level NO es 2 ni 3, comparar cdi        
+        	OR tariffs.voltage_level IN (2,3) -- Si voltage_level ES 2 o 3, ignorar cdi
+    	)
 WHERE records.id_service = $1
-      AND records.record_timestamp >= $2
-      AND records.record_timestamp < $3  
-GROUP BY records.id_service, tariffs.CU, services.id_market,services.cdi, services.voltage_level, tariffs.c
+        AND records.record_timestamp >= $2
+        AND records.record_timestamp < $3  
+GROUP BY records.id_service, 
+		tariffs.id_market, services.id_market,
+		tariffs.voltage_level, tariffs.voltage_level,
+		tariffs.cdi, services.cdi,tariffs.C;
 """
 
 GET_EE1_QUERY = """
 SELECT records.id_service,        
-       SUM(injection.value) AS total_injection,
-       SUM(consumption.value) AS total_consumption,
-       tariffs.CU,
-       CASE 
-       WHEN SUM(injection.value) <= SUM(consumption.value) THEN 
-            SUM(injection.value) * tariffs.CU * (-1)
-       ELSE 
-            SUM(consumption.value) * tariffs.CU * (-1)
+	   SUM(injection.value) AS total_injection,
+	   SUM(consumption.value) AS total_consumption,
+	   tariffs.CU,
+	   CASE 
+           WHEN SUM(injection.value) <= SUM(consumption.value) THEN 
+                ROUND(  (SUM(injection.value) * tariffs.CU * (-1))::NUMERIC,2)
+           ELSE 
+                ROUND(  (SUM(consumption.value) * tariffs.CU * (-1) )::NUMERIC,2)
        END AS ee1
 FROM records
 JOIN consumption ON records.id_record = consumption.id_record
 JOIN injection ON records.id_record = injection.id_record
 JOIN services ON records.id_service = services.id_service
 JOIN tariffs
-     ON (tariffs.id_market = services.id_market AND tariffs.voltage_level = services.voltage_level)
-     OR (tariffs.id_market = services.id_market AND tariffs.voltage_level NOT IN (2,3) AND tariffs.cdi = services.cdi)
+	ON 	tariffs.id_market = services.id_market AND 
+		tariffs.voltage_level = services.voltage_level AND
+		(        
+        	(tariffs.voltage_level NOT IN (2,3) AND tariffs.cdi = services.cdi) -- Si voltage_level NO es 2 ni 3, comparar cdi        
+        	OR tariffs.voltage_level IN (2,3) -- Si voltage_level ES 2 o 3, ignorar cdi
+    	)
 WHERE records.id_service = $1
-      AND records.record_timestamp >= $2
-      AND records.record_timestamp < $3  
-GROUP BY records.id_service, tariffs.CU
+        AND records.record_timestamp >= $2
+        AND records.record_timestamp < $3 
+GROUP BY records.id_service,tariffs.CU;
 """
 
 GET_EE2_QUERY = """
