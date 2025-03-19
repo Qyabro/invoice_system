@@ -2,8 +2,13 @@ GET_INVOICE_QUERY = """
 WITH data AS (
     SELECT records.record_timestamp, 
            injection.value AS hourly_injection,
-           SUM(injection.value) OVER (ORDER BY records.record_timestamp) AS cumulative_injection,
+		   consumption.value AS hourly_consumption,
+           SUM(injection.value) OVER (
+		   PARTITION BY records.id_service 
+		   ORDER BY records.record_timestamp
+		   ) AS cumulative_injection,
            SUM(consumption.value) OVER () AS total_consumption,
+		   SUM(injection.value) OVER () AS total_injection,
            xm_data_hourly_per_agent.value AS invoice_factor
     FROM records
     JOIN injection ON records.id_record = injection.id_record
@@ -15,17 +20,14 @@ WITH data AS (
 ),
 ee_calculated AS (
     SELECT CASE 
-               WHEN cumulative_injection <= total_consumption THEN 0
-               WHEN cumulative_injection > total_consumption AND 
-                    MIN(cumulative_injection) FILTER (WHERE cumulative_injection > total_consumption) 
-                    OVER () = cumulative_injection 
-               THEN (cumulative_injection - total_consumption) * invoice_factor
-               ELSE hourly_injection * invoice_factor
+               WHEN hourly_injection <= hourly_consumption OR total_injection <= total_consumption  THEN 0
+               ELSE (hourly_injection-hourly_consumption) * invoice_factor
            END AS ee2
     FROM data
 ),
 total_ee AS (
-    SELECT ROUND( SUM(ee2)::NUMERIC,2) AS total_ee2 FROM ee_calculated
+    SELECT ROUND( SUM(ee2)::NUMERIC,2) AS total_ee2 
+	FROM ee_calculated
 )
 SELECT records.id_service,        
        services.id_market, services.cdi, services.voltage_level,       

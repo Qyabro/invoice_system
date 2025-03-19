@@ -39,7 +39,7 @@ Sistema de cálculo y análisis de facturación de energía utilizando **Python*
     "ea": 400620.71,
     "ec": 17425.45,
     "ee1": -400620.71,
-    "ee2": 174350.73
+    "ee2": 705515.49
   }
 ]
 ```
@@ -59,9 +59,38 @@ Sistema de cálculo y análisis de facturación de energía utilizando **Python*
     "ea": 294241.59,
     "ec": 14243.58,
     "ee1": -294241.59,
-    "ee2": 225869.29
+    "ee2": 600452.21
   }
 ]
+```
+
+## Explicacion Calculos
+
+### EE1:
+
+$$
+EE1=min(∑Inyeccion,∑Consumo)
+
+$$
+
+$$
+ValorEE1 = EE1 × CUnegativo​
+$$
+
+
+Procedimiento para el Cálculo de EE1:
+
+Explicacion de Comparación de Energías:
+```
+Caso 1: Si la sumatoria de la energía inyectada (injection) es menor o igual que la sumatoria de la energía consumida (consumption), la cantidad de EE1 es igual a la sumatoria de la energía inyectada.
+```
+```
+Caso 2: Si la sumatoria de la energía inyectada es mayor que la sumatoria de la energía consumida, la cantidad de EE1 es igual a la sumatoria de la energía consumida.
+```
+```
+Tarifa Aplicable:
+
+En ambos casos, la tarifa aplicada a los excedentes de energía es el Costo Unitario (CU) negativo definido en las tarifas correspondientes.
 ```
 
 
